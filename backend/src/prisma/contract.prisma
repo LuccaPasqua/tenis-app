@@ -1,21 +1,62 @@
 // use prisma-8
 
-model User {
-  id        Int                @id @default(autoincrement())
-  email     String             @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+model Player {
+  id           Int           @id @default(autoincrement())
+  name         String
+  img_url      String
+  wins         Int
+  losses       Int
+  created_at   DateTime      @default(now())
+  deleted_at   DateTime?
+
+  // relations
+  matchesAsA   Match[]       @relation("PlayerA")
+  matchesAsB   Match[]       @relation("PlayerB")
+  eventPlayers EventPlayer[]
 }
 
-model Post {
-  id        Int                @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User               @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+model Event {
+  id           Int           @id @default(autoincrement())
+  name         String
+  date         DateTime
+  created_at   DateTime      @default(now())
+
+  // relations
+  eventPlayers EventPlayer[]
+}
+
+model EventPlayer {
+  event_id   Int
+  player_id  Int
+  created_at DateTime @default(now())
+
+  event      Event    @relation(fields: [event_id], references: [id])
+  player     Player   @relation(fields: [player_id], references: [id])
+
+  @@id([event_id, player_id])
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  player_a_id Int
+  player_b_id Int
+  date        DateTime
+  created_at  DateTime @default(now())
+  winner_id  Int
+
+  // relations
+  player_a    Player   @relation("PlayerA", fields: [player_a_id], references: [id])
+  player_b    Player   @relation("PlayerB", fields: [player_b_id], references: [id])
+  winner Player @relation("Winner", fields:[winner_id], references: [id])
+  sets        Sets[]
+}
+
+model Sets {
+  id             Int   @id @default(autoincrement())
+  match_id       Int
+  set_number     Int
+  games_player_a Int
+  games_player_b Int
+
+  match          Match @relation(fields: [match_id], references: [id])
 }
